@@ -17,7 +17,7 @@ class AdiantamentoTest {
 
         LocalDate resultado = calcularDataAdiantamento(mesDeReferencia);
 
-        assertThat(resultado).isEqualTo(LocalDate.of(2027,1,20));
+        assertThat(resultado).isEqualTo(LocalDate.of(2027, 1, 20));
     }
 
     // Dia 20 no sábado
@@ -27,7 +27,7 @@ class AdiantamentoTest {
 
         LocalDate resultado = calcularDataAdiantamento(mesDeReferencia);
 
-        assertThat(resultado).isEqualTo(LocalDate.of(2027,2,19));
+        assertThat(resultado).isEqualTo(LocalDate.of(2027, 2, 19));
     }
 
     // Dia 20 no domingo
@@ -37,7 +37,7 @@ class AdiantamentoTest {
 
         LocalDate resultado = calcularDataAdiantamento(mesDeReferencia);
 
-        assertThat(resultado).isEqualTo(LocalDate.of(2027,6,18));
+        assertThat(resultado).isEqualTo(LocalDate.of(2027, 6, 18));
     }
 
 }

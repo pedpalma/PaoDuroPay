@@ -7,6 +7,7 @@ import java.math.BigDecimal;
 import static com.paoduropay.backend.dominio.ValeRefeicao.calcularValorDaRecarga;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
+
 class ValeRefeicaoTest {
 
     // 22 dias úteis
