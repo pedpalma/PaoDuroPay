@@ -9,11 +9,10 @@ public class Adiantamento {
     public static LocalDate calcularDataAdiantamento(YearMonth mesDeReferencia) {
         LocalDate dataDoAdiantamento = mesDeReferencia.atDay(20);
 
-        // A data de adiantamento sempre antecipa em caso de feriado ou fim de semana.
+        // A data de adiantamento sempre antecipa em caso de fim de semana.
         if (dataDoAdiantamento.getDayOfWeek() == DayOfWeek.SATURDAY) {
             dataDoAdiantamento = dataDoAdiantamento.minusDays(1);
-        }
-        else if (dataDoAdiantamento.getDayOfWeek() == DayOfWeek.SUNDAY) {
+        } else if (dataDoAdiantamento.getDayOfWeek() == DayOfWeek.SUNDAY) {
             dataDoAdiantamento = dataDoAdiantamento.minusDays(2);
         }
 
