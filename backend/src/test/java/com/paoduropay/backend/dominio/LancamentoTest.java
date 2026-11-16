@@ -2,7 +2,7 @@ package com.paoduropay.backend.dominio;
 
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.params.ParameterizedTest;
-import org.junit.jupiter.params.provider.EnumSource;
+import org.junit.jupiter.params.provider.CsvSource;
 
 import java.math.BigDecimal;
 import java.time.LocalDate;
@@ -18,7 +18,7 @@ class LancamentoTest {
         Lancamento lancamento = new Lancamento(
                 "Lançamento de teste",
                 new BigDecimal("3000.00"),
-                LocalDate.now(),
+                LocalDate.of(2026, 11, 6),
                 Carteira.CONTA_CORRENTE,
                 TipoDeLancamento.ENTRADA
         );
@@ -32,11 +32,11 @@ class LancamentoTest {
 
     @Test
     void retornaValorNegativoSeForSaida() {
-        //Arrange
+        // Arrange
         Lancamento lancamento = new Lancamento(
                 "Lançamento de teste",
                 new BigDecimal("200.00"),
-                LocalDate.now(),
+                LocalDate.of(2026, 11, 20),
                 Carteira.CONTA_CORRENTE,
                 TipoDeLancamento.SAIDA
         );
@@ -53,7 +53,7 @@ class LancamentoTest {
         assertThatThrownBy(() -> new Lancamento(
                 "Lançamento inválido",
                 BigDecimal.ZERO,
-                LocalDate.now(),
+                LocalDate.of(2026, 11, 15),
                 Carteira.CONTA_CORRENTE,
                 TipoDeLancamento.SAIDA
         )).isInstanceOf(IllegalArgumentException.class).hasMessage("Valor deve ser positivo.");
@@ -64,7 +64,7 @@ class LancamentoTest {
         assertThatThrownBy(() -> new Lancamento(
                 "Lançamento inválido",
                 new BigDecimal("-10.00"),
-                LocalDate.now(),
+                LocalDate.of(2026, 11, 15),
                 Carteira.CONTA_CORRENTE,
                 TipoDeLancamento.ENTRADA
         )).isInstanceOf(IllegalArgumentException.class).hasMessage("Valor deve ser positivo.");
@@ -75,20 +75,23 @@ class LancamentoTest {
         assertThatThrownBy(() -> new Lancamento(
                 "Lançamento inválido",
                 new BigDecimal("100.00"),
-                LocalDate.now(),
+                LocalDate.of(2026, 11, 15),
                 null,
                 TipoDeLancamento.ENTRADA
         )).isInstanceOf(NullPointerException.class).hasMessage("A carteira não pode ser nula.");
     }
 
     @ParameterizedTest
-    @EnumSource(TipoDeLancamento.class)
-    void retornaOValorComOSinalCorreto(TipoDeLancamento tipo) {
+    @CsvSource({
+            "ENTRADA, 100.00",
+            "SAIDA, -100.00"
+    })
+    void retornaOValorComOSinalCorreto(TipoDeLancamento tipo, String esperado) {
         // Arrange
         Lancamento lancamento = new Lancamento(
                 "Lançamento de teste",
                 new BigDecimal("100.00"),
-                LocalDate.now(),
+                LocalDate.of(2026, 11, 15),
                 Carteira.CONTA_CORRENTE,
                 tipo
         );
@@ -97,9 +100,6 @@ class LancamentoTest {
         BigDecimal resultado = lancamento.valorComSinal();
 
         // Assert
-        assertThat(resultado).isEqualByComparingTo(switch (tipo) {
-            case ENTRADA -> new BigDecimal("100.00");
-            case SAIDA -> new BigDecimal("-100.00");
-        });
+        assertThat(resultado).isEqualByComparingTo(esperado);
     }
 }
