@@ -1,4 +1,4 @@
-package com.paoduropay.backend.dominio;
+package com.paoduropay.backend.domain;
 
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.params.ParameterizedTest;
@@ -10,96 +10,96 @@ import java.time.LocalDate;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
 
-class LancamentoTest {
+class TransactionTest {
 
     @Test
-    void retornaValorPositivoSeForEntrada() {
+    void returnsPositiveAmountForIncome() {
         // Arrange
-        Lancamento lancamento = new Lancamento(
+        Transaction transaction = new Transaction(
                 "Lançamento de teste",
                 new BigDecimal("3000.00"),
                 LocalDate.of(2026, 11, 6),
-                Carteira.CONTA_CORRENTE,
-                TipoDeLancamento.ENTRADA
+                Wallet.CHECKING_ACCOUNT,
+                TransactionType.INCOME
         );
 
         // Act
-        BigDecimal resultado = lancamento.valorComSinal();
+        BigDecimal result = transaction.signedAmount();
 
         // Assert
-        assertThat(resultado).isEqualByComparingTo("3000.00");
+        assertThat(result).isEqualByComparingTo("3000.00");
     }
 
     @Test
-    void retornaValorNegativoSeForSaida() {
+    void returnsNegativeAmountForExpense() {
         // Arrange
-        Lancamento lancamento = new Lancamento(
+        Transaction transaction = new Transaction(
                 "Lançamento de teste",
                 new BigDecimal("200.00"),
                 LocalDate.of(2026, 11, 20),
-                Carteira.CONTA_CORRENTE,
-                TipoDeLancamento.SAIDA
+                Wallet.CHECKING_ACCOUNT,
+                TransactionType.EXPENSE
         );
 
         // Act
-        BigDecimal resultado = lancamento.valorComSinal();
+        BigDecimal result = transaction.signedAmount();
 
         // Assert
-        assertThat(resultado).isEqualByComparingTo("-200.00");
+        assertThat(result).isEqualByComparingTo("-200.00");
     }
 
     @Test
-    void lancaExcecaoSeValorForZero() {
-        assertThatThrownBy(() -> new Lancamento(
+    void throwsExceptionIfAmountIsZero() {
+        assertThatThrownBy(() -> new Transaction(
                 "Lançamento inválido",
                 BigDecimal.ZERO,
                 LocalDate.of(2026, 11, 15),
-                Carteira.CONTA_CORRENTE,
-                TipoDeLancamento.SAIDA
+                Wallet.CHECKING_ACCOUNT,
+                TransactionType.EXPENSE
         )).isInstanceOf(IllegalArgumentException.class).hasMessage("Valor deve ser positivo.");
     }
 
     @Test
-    void lancaExcecaoSeValorForNegativo() {
-        assertThatThrownBy(() -> new Lancamento(
+    void throwsExceptionIfAmountIsNegative() {
+        assertThatThrownBy(() -> new Transaction(
                 "Lançamento inválido",
                 new BigDecimal("-10.00"),
                 LocalDate.of(2026, 11, 15),
-                Carteira.CONTA_CORRENTE,
-                TipoDeLancamento.ENTRADA
+                Wallet.CHECKING_ACCOUNT,
+                TransactionType.INCOME
         )).isInstanceOf(IllegalArgumentException.class).hasMessage("Valor deve ser positivo.");
     }
 
     @Test
-    void lancaExcecaoSeCarteiraForNula() {
-        assertThatThrownBy(() -> new Lancamento(
+    void throwsExceptionIfWalletIsNull() {
+        assertThatThrownBy(() -> new Transaction(
                 "Lançamento inválido",
                 new BigDecimal("100.00"),
                 LocalDate.of(2026, 11, 15),
                 null,
-                TipoDeLancamento.ENTRADA
+                TransactionType.INCOME
         )).isInstanceOf(NullPointerException.class).hasMessage("A carteira não pode ser nula.");
     }
 
     @ParameterizedTest
     @CsvSource({
-            "ENTRADA, 100.00",
-            "SAIDA, -100.00"
+            "INCOME, 100.00",
+            "EXPENSE, -100.00"
     })
-    void retornaOValorComOSinalCorreto(TipoDeLancamento tipo, String esperado) {
+    void returnsTheAmountWithTheCorrectSign(TransactionType type, String expected) {
         // Arrange
-        Lancamento lancamento = new Lancamento(
+        Transaction transaction = new Transaction(
                 "Lançamento de teste",
                 new BigDecimal("100.00"),
                 LocalDate.of(2026, 11, 15),
-                Carteira.CONTA_CORRENTE,
-                tipo
+                Wallet.CHECKING_ACCOUNT,
+                type
         );
 
         // Act
-        BigDecimal resultado = lancamento.valorComSinal();
+        BigDecimal result = transaction.signedAmount();
 
         // Assert
-        assertThat(resultado).isEqualByComparingTo(esperado);
+        assertThat(result).isEqualByComparingTo(expected);
     }
 }

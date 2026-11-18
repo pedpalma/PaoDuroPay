@@ -1,4 +1,4 @@
-package com.paoduropay.backend.dominio;
+package com.paoduropay.backend.domain;
 
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.params.ParameterizedTest;
@@ -12,7 +12,7 @@ import java.util.List;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
 
-class CompraTest {
+class PurchaseTest {
 
     @ParameterizedTest
     @CsvSource({
@@ -21,46 +21,46 @@ class CompraTest {
             "2026-11-01, 2026-11",
             "2026-12-31, 2027-01"
     })
-    void calcularDataDaFaturaCorretamente(LocalDate dataCompra, YearMonth faturaEsperada) {
+    void calculatesBillingMonthCorrectly(LocalDate purchaseDate, YearMonth expectedBillingMonth) {
         // Arrange
-        Compra compra = new Compra(
+        Purchase purchase = new Purchase(
                 "Compra de teste",
                 new BigDecimal("100.00"),
-                dataCompra,
+                purchaseDate,
                 1
         );
 
         // Act
-        YearMonth resultado = compra.mesDaFatura();
+        YearMonth result = purchase.billingMonth();
 
         // Assert
-        assertThat(resultado).isEqualTo(faturaEsperada);
+        assertThat(result).isEqualTo(expectedBillingMonth);
     }
 
     @Test
-    void geraUmaFaturaParaCompraAVista() {
+    void generatesOneInstallmentForASinglePayment() {
         // Arrange
-        Compra compra = new Compra(
+        Purchase purchase = new Purchase(
                 "Compra de teste",
                 new BigDecimal("50.00"),
                 LocalDate.of(2026, 11, 5),
                 1
         );
         // Act
-        List<Parcela> parcelas = compra.gerarParcelas();
+        List<Installment> installments = purchase.generateInstallments();
 
         // Assert
-        assertThat(parcelas).hasSize(1);
-        assertThat(parcelas.getFirst().numeroDaParcela()).isEqualTo(1);
+        assertThat(installments).hasSize(1);
+        assertThat(installments.getFirst().number()).isEqualTo(1);
 
-        assertThat(parcelas.getFirst().valor()).isEqualByComparingTo("50.00");
-        assertThat(parcelas.getFirst().fatura()).isEqualTo(YearMonth.of(2026, 11));
+        assertThat(installments.getFirst().amount()).isEqualByComparingTo("50.00");
+        assertThat(installments.getFirst().billingMonth()).isEqualTo(YearMonth.of(2026, 11));
     }
 
     @Test
-    void distribuiOValorCorretamenteEntreTresFaturas() {
+    void distributesTheAmountAmongThreeInstallments() {
         // Arrange
-        Compra compra = new Compra(
+        Purchase purchase = new Purchase(
                 "Compra de teste",
                 new BigDecimal("100.00"),
                 LocalDate.of(2026, 10, 20),
@@ -68,13 +68,13 @@ class CompraTest {
         );
 
         // Act
-        List<Parcela> parcelas = compra.gerarParcelas();
+        List<Installment> installments = purchase.generateInstallments();
 
         // Assert
-        assertThat(parcelas).hasSize(3);
+        assertThat(installments).hasSize(3);
 
-        assertThat(parcelas)
-                .extracting(Parcela::valor)
+        assertThat(installments)
+                .extracting(Installment::amount)
                 .usingElementComparator(BigDecimal::compareTo)
                 .containsExactly(
                         new BigDecimal("33.34"),
@@ -82,12 +82,12 @@ class CompraTest {
                         new BigDecimal("33.33")
                 );
 
-        assertThat(parcelas)
-                .extracting(Parcela::numeroDaParcela)
+        assertThat(installments)
+                .extracting(Installment::number)
                 .containsExactly(1, 2, 3);
 
-        assertThat(parcelas)
-                .extracting(Parcela::fatura)
+        assertThat(installments)
+                .extracting(Installment::billingMonth)
                 .containsExactly(
                         YearMonth.of(2026, 11),
                         YearMonth.of(2026, 12),
@@ -98,9 +98,9 @@ class CompraTest {
     }
 
     @Test
-    void avancaCorretamenteAsFaturasEntreAnos() {
+    void advancesBillingMonthsAcrossYears() {
         // Arrange
-        Compra compra = new Compra(
+        Purchase purchase = new Purchase(
                 "Compra de teste",
                 new BigDecimal("300.00"),
                 LocalDate.of(2026, 11, 20),
@@ -108,13 +108,13 @@ class CompraTest {
         );
 
         // Act
-        List<Parcela> parcelas = compra.gerarParcelas();
+        List<Installment> installments = purchase.generateInstallments();
 
         // Assert
-        assertThat(parcelas).hasSize(3);
+        assertThat(installments).hasSize(3);
 
-        assertThat(parcelas)
-                .extracting(Parcela::fatura)
+        assertThat(installments)
+                .extracting(Installment::billingMonth)
                 .containsExactly(
                         YearMonth.of(2026, 12),
                         YearMonth.of(2027, 1),
@@ -123,8 +123,8 @@ class CompraTest {
     }
 
     @Test
-    void rejeitaValorZero() {
-        assertThatThrownBy(() -> new Compra(
+    void rejectsZeroAmount() {
+        assertThatThrownBy(() -> new Purchase(
                 "Compra inválida",
                 BigDecimal.ZERO,
                 LocalDate.of(2026, 11, 5),
@@ -133,8 +133,8 @@ class CompraTest {
     }
 
     @Test
-    void rejeitaValorNegativo() {
-        assertThatThrownBy(() -> new Compra(
+    void rejectsNegativeAmount() {
+        assertThatThrownBy(() -> new Purchase(
                 "Compra inválida",
                 new BigDecimal("-10.00"),
                 LocalDate.of(2026, 11, 5),
@@ -143,8 +143,8 @@ class CompraTest {
     }
 
     @Test
-    void rejeitaQuantidadeDeParcelasIgualAZero() {
-        assertThatThrownBy(() -> new Compra(
+    void rejectsZeroInstallments() {
+        assertThatThrownBy(() -> new Purchase(
                 "Compra inválida",
                 new BigDecimal("100.00"),
                 LocalDate.of(2026, 11, 5),
@@ -153,26 +153,26 @@ class CompraTest {
     }
 
     @Test
-    void preservaOValorTotalAoGerarSeteParcelas() {
+    void preservesTheTotalAmountWithSevenInstallments() {
         // Arrange
-        BigDecimal valorTotal = new BigDecimal("99.99");
+        BigDecimal totalAmount = new BigDecimal("99.99");
 
 
-        Compra compra = new Compra(
+        Purchase purchase = new Purchase(
                 "Compra de teste",
-                valorTotal,
+                totalAmount,
                 LocalDate.of(2026, 11, 5),
                 7
         );
 
         // Act
-        List<Parcela> parcelas = compra.gerarParcelas();
+        List<Installment> installments = purchase.generateInstallments();
 
-        BigDecimal somaParcelas = parcelas.stream()
-                .map(Parcela::valor).reduce(BigDecimal.ZERO, BigDecimal::add);
+        BigDecimal installmentsSum = installments.stream()
+                .map(Installment::amount).reduce(BigDecimal.ZERO, BigDecimal::add);
 
         // Assert
-        assertThat(parcelas).hasSize(7);
-        assertThat(somaParcelas).isEqualByComparingTo(valorTotal);
+        assertThat(installments).hasSize(7);
+        assertThat(installmentsSum).isEqualByComparingTo(totalAmount);
     }
 }
